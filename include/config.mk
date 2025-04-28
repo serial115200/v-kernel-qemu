@@ -1,0 +1,14 @@
+BUSYBOX_VERSION ?= 1.37.0
+BUSYBOX_URL ?= https://busybox.net/downloads/busybox-$(BUSYBOX_VERSION).tar.bz2
+BUSYBOX_SHA256 ?= 3311dff32e746499f4df0d5df04d7eb396382d7e108bb9250e7b519b837043a4
+
+KERNEL_VERSION ?= 6.14.4
+KERNEL_URL ?= https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-$(KERNEL_VERSION).tar.xz
+KERNEL_SHA256 ?= 9452f28d7a0051fba4886712395b484c4c7fcf9f85944a62fd3d97dc923f5339
+
+UBOOT_VERSION ?= 2020.04
+UBOOT_URL ?= https://ftp.denx.de/pub/u-boot/u-boot-$(UBOOT_VERSION).tar.bz2
+UBOOT_SHA256 ?= fe732aaf037d9cc3c0909bad8362af366ae964bbdac6913a34081ff4ad565372
+
+CROSS_COMPILE ?=
+ARCH ?= x86_64

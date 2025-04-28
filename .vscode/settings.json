@@ -1,0 +1,11 @@
+{
+    "editor.rulers": [
+        80,
+        90,
+        100
+    ],
+    "editor.renderWhitespace": "all",
+    "files.trimFinalNewlines": true,
+    "files.insertFinalNewline": true,
+    "files.trimTrailingWhitespace": true,
+}
