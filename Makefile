@@ -25,6 +25,9 @@ include include/rootfs.mk
 help:
 	@echo "Available commands:"
 	@echo ""
+	@echo "System Information:"
+	@echo "  make host-info      - Display host system information"
+	@echo ""
 	@echo "Build commands:"
 	@echo "  make all                           - Build everything"
 	@echo "  make {uboot,busybox,kernel}        - Build specified component"
@@ -74,7 +77,7 @@ src: busybox-src kernel-src uboot-src
 	@echo "All components extracted successfully."
 
 # Build all components
-build: busybox kernel uboot rootfs
+build: busybox kernel uboot rootfs-img
 	@echo "All components built successfully."
 
 # Clean target
@@ -88,17 +91,11 @@ cleansrc:
 distclean: clean cleansrc
 	@rm -rf $(DL_DIR)
 
-run:
+# Run QEMU
+run: all
 	@echo "Starting QEMU..."
-	@echo "Kernel path: $(KERNEL_BUILD_DIR)/arch/x86/boot/bzImage"
-	@echo "Rootfs path: $(ROOTFS_IMG).gz"
 	@qemu-system-x86_64 \
-		-m 512M \
 		-kernel $(KERNEL_BUILD_DIR)/arch/x86/boot/bzImage \
 		-nographic \
-		-append "root=/dev/ram init=/sbin/init console=ttyS0" \
-		-initrd $(ROOTFS_IMG).gz \
-		-serial mon:stdio \
-		-machine pc \
-		-cpu qemu64 \
-		-smp 1
+		-append "rdinit=/sbin/init console=ttyS0" \
+		-initrd $(ROOTFS_IMG)

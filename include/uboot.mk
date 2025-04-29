@@ -6,7 +6,21 @@ UBOOT_SOURCE_DIR := $(SRC_DIR)/u-boot-$(UBOOT_VERSION)
 UBOOT_BUILD_DIR := $(BUILD_DIR)/u-boot-$(UBOOT_VERSION)
 UBOOT_CONFIG := $(CONFIGS_DIR)/u-boot-$(UBOOT_VERSION).config
 UBOOT_ARCHIVE := $(DL_DIR)/u-boot-$(UBOOT_VERSION).tar.bz2
-UBOOT_URL := https://ftp.denx.de/pub/u-boot/u-boot-$(UBOOT_VERSION).tar.bz2
+
+# Mirror configuration
+# Available options:
+#   official - Official source (ftp.denx.de)
+UBOOT_MIRROR ?= official
+
+# Define mirror URLs
+UBOOT_MIRROR_OFFICIAL := https://ftp.denx.de/pub/u-boot/u-boot-$(UBOOT_VERSION).tar.bz2
+
+# Select mirror based on configuration
+ifeq ($(UBOOT_MIRROR),official)
+UBOOT_URL := $(UBOOT_MIRROR_OFFICIAL)
+else
+$(error Invalid UBOOT_MIRROR value. Please use one of: official)
+endif
 
 # Download U-Boot source code
 uboot-dl:

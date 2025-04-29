@@ -6,7 +6,33 @@ KERNEL_SOURCE_DIR := $(SRC_DIR)/linux-$(KERNEL_VERSION)
 KERNEL_BUILD_DIR := $(BUILD_DIR)/linux-$(KERNEL_VERSION)
 KERNEL_CONFIG := $(CONFIGS_DIR)/linux-$(KERNEL_VERSION).config
 KERNEL_ARCHIVE := $(DL_DIR)/linux-$(KERNEL_VERSION).tar.xz
-KERNEL_URL := https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-$(KERNEL_VERSION).tar.xz
+
+# Mirror configuration
+# Available options:
+#   official - Official source (cdn.kernel.org)
+#   tsinghua - Tsinghua University mirror
+#   ustc    - University of Science and Technology of China mirror
+#   aliyun  - Alibaba Cloud mirror
+KERNEL_MIRROR ?= tsinghua
+
+# Define mirror URLs
+KERNEL_MIRROR_OFFICIAL := https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-$(KERNEL_VERSION).tar.xz
+KERNEL_MIRROR_TSINGHUA := https://mirrors.tuna.tsinghua.edu.cn/kernel/v6.x/linux-$(KERNEL_VERSION).tar.xz
+KERNEL_MIRROR_USTC := https://mirrors.ustc.edu.cn/kernel/v6.x/linux-$(KERNEL_VERSION).tar.xz
+KERNEL_MIRROR_ALIYUN := https://mirrors.aliyun.com/linux-kernel/v6.x/linux-$(KERNEL_VERSION).tar.xz
+
+# Select mirror based on configuration
+ifeq ($(KERNEL_MIRROR),official)
+KERNEL_URL := $(KERNEL_MIRROR_OFFICIAL)
+else ifeq ($(KERNEL_MIRROR),tsinghua)
+KERNEL_URL := $(KERNEL_MIRROR_TSINGHUA)
+else ifeq ($(KERNEL_MIRROR),ustc)
+KERNEL_URL := $(KERNEL_MIRROR_USTC)
+else ifeq ($(KERNEL_MIRROR),aliyun)
+KERNEL_URL := $(KERNEL_MIRROR_ALIYUN)
+else
+$(error Invalid KERNEL_MIRROR value. Please use one of: official, tsinghua, ustc, aliyun)
+endif
 
 # Download Linux kernel source code
 kernel-dl:

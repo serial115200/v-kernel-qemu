@@ -11,11 +11,15 @@ define do_download
 		retry_count=$$((retry_count + 1)); \
 		if [ -f $(2) ]; then \
 			if [ -n "$(3)" ]; then \
-				if echo "$(3)  $(2)" | sha256sum -c --quiet; then \
+				current_sha256=$$(sha256sum $(2) | cut -d' ' -f1); \
+				if [ "$$current_sha256" = "$(3)" ]; then \
 					echo "$(4) archive exists and checksum verified, skipping download..."; \
 					break; \
 				else \
-					echo "$(4) archive exists but checksum mismatch, will retry download..."; \
+					echo "$(4) archive exists but checksum mismatch:"; \
+					echo "  Expected: $(3)"; \
+					echo "  Current:  $$current_sha256"; \
+					echo "  Will retry download..."; \
 					rm -f $(2); \
 				fi; \
 			else \
@@ -26,11 +30,14 @@ define do_download
 		echo "Downloading $(4) source code (attempt $$retry_count/3)..."; \
 		if wget -q $(1) -O $(2); then \
 			if [ -n "$(3)" ]; then \
-				if echo "$(3)  $(2)" | sha256sum -c --quiet; then \
+				current_sha256=$$(sha256sum $(2) | cut -d' ' -f1); \
+				if [ "$$current_sha256" = "$(3)" ]; then \
 					echo "$(4) download successful and checksum verified."; \
 					break; \
 				else \
-					echo "$(4) download successful but checksum mismatch."; \
+					echo "$(4) download successful but checksum mismatch:"; \
+					echo "  Expected: $(3)"; \
+					echo "  Current:  $$current_sha256"; \
 					rm -f $(2); \
 				fi; \
 			else \
@@ -46,6 +53,10 @@ define do_download
 	done; \
 	if [ $$retry_count -eq 3 ]; then \
 		echo "Failed to download $(4) after 3 attempts."; \
+		echo "Please check:"; \
+		echo "  1. Network connection"; \
+		echo "  2. URL availability: $(1)"; \
+		echo "  3. Expected SHA256: $(3)"; \
 		false; \
 	fi
 endef
