@@ -6,9 +6,9 @@
 #   $(4) - Component name
 define do_download
 	@retry_count=0; \
+	mkdir -p $(dir $(2)); \
 	while [ $$retry_count -lt 3 ]; do \
 		retry_count=$$((retry_count + 1)); \
-		\
 		if [ -f $(2) ]; then \
 			if [ -n "$(3)" ]; then \
 				if echo "$(3)  $(2)" | sha256sum -c --quiet; then \
@@ -23,7 +23,6 @@ define do_download
 				break; \
 			fi; \
 		fi; \
-		\
 		echo "Downloading $(4) source code (attempt $$retry_count/3)..."; \
 		if wget -q $(1) -O $(2); then \
 			if [ -n "$(3)" ]; then \
@@ -39,7 +38,6 @@ define do_download
 				break; \
 			fi; \
 		fi; \
-		\
 		echo "$(4) download failed (attempt $$retry_count/3)."; \
 		if [ $$retry_count -lt 3 ]; then \
 			echo "Retrying in 5 seconds..."; \
@@ -62,41 +60,45 @@ define do_extract
 		echo "$(3) source directory already exists, skipping extraction..."; \
 	else \
 		echo "Extracting $(3) source code..."; \
-		mkdir -p $(2); \
-		tar -xf $(1) -C $(2) --strip-components=1; \
+		mkdir -p $(dir $(2)); \
+		tar -xf $(1) -C $(dir $(2)); \
+		if [ ! -d $(2) ]; then \
+			echo "Error: Extracted directory structure does not match expected path $(2)"; \
+			false; \
+		fi; \
 	fi
 endef
 
 # Common build function for all components
 # Parameters:
-#   $(1) - Source directory
-#   $(2) - Build directory
-#   $(3) - Config file path
-#   $(4) - Component version
-#   $(5) - Component name
+#   $(1) - Build directory
+#   $(2) - Config file path
+#   $(3) - Component version
+#   $(4) - Component name
 define do_build
-	@echo "Building $(5) $(4)..."
-	@mkdir -p $(2)
-	@if [ -f $(3) ]; then \
-		cp $(3) $(2)/.config; \
+	@echo "Building $(4) $(3)..."
+	@mkdir -p $(1)
+	@if [ -f $(2) ]; then \
+		echo "Using existing config from $(2)"; \
+		cp $(2) $(1)/.config; \
 	else \
-		cd $(1) && make defconfig O=$(CURDIR)/$(2); \
+		echo "Using default config"; \
+		cd $(1) && make defconfig ARCH=$(ARCH); \
 	fi
-	@cd $(1) && make -j$(JOBS) CROSS_COMPILE=$(CROSS_COMPILE) O=$(CURDIR)/$(2)
+	@cd $(1) && make -j$(JOBS) CROSS_COMPILE=$(CROSS_COMPILE) ARCH=$(ARCH) all
 endef
 
 # Common menuconfig function for all components
 # Parameters:
-#   $(1) - Source directory
-#   $(2) - Build directory
-#   $(3) - Config file path
-#   $(4) - Component name
+#   $(1) - Build directory
+#   $(2) - Config file path
+#   $(3) - Component name
 define do_menuconfig
-	@mkdir -p $(2)
-	@if [ -f $(3) ]; then \
-		cp $(3) $(2)/.config; \
+	@mkdir -p $(1)
+	@if [ -f $(2) ]; then \
+		cp $(2) $(1)/.config; \
 	fi
-	@cd $(1) && make menuconfig O=$(CURDIR)/$(2)
+	@cd $(1) && make menuconfig
 endef
 
 # Common saveconfig function for all components
@@ -117,17 +119,16 @@ endef
 
 # Common loadconfig function for all components
 # Parameters:
-#   $(1) - Source directory
-#   $(2) - Build directory
-#   $(3) - Config file path
-#   $(4) - Component name
+#   $(1) - Build directory
+#   $(2) - Config file path
+#   $(3) - Component name
 define do_loadconfig
-	@mkdir -p $(2)
-	@if [ -f $(3) ]; then \
-		cp $(3) $(2)/.config; \
-		echo "Loaded $(4) config from $(3)"; \
+	@mkdir -p $(1)
+	@if [ -f $(2) ]; then \
+		cp $(2) $(1)/.config; \
+		echo "Loaded $(3) config from $(2)"; \
 	else \
-		cd $(1) && make defconfig O=$(CURDIR)/$(2); \
-		echo "Created default $(4) config"; \
+		cd $(1) && make defconfig; \
+		echo "Created default $(3) config"; \
 	fi
 endef

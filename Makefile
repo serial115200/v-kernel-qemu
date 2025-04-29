@@ -1,18 +1,17 @@
 # Configuration file path
 CONFIG_FILE := config.conf
 
-include include/cpu.mk
+# Then include other makefiles
+include include/host.mk
 include include/deps.mk
 include include/dirs.mk
 include include/common.mk
-
+# Include user configuration first
+include $(CONFIG_FILE)
 include include/config.mk
 include include/uboot.mk
 include include/kernel.mk
 include include/busybox.mk
-
-# Include configuration and dependencies
-include $(CONFIG_FILE)
 
 .PHONY: all clean help
 
@@ -37,16 +36,17 @@ help:
 	@echo "  and so on for busybox and kernel"
 	@echo ""
 	@echo "Cleanup commands:"
-	@echo "  make clean                  - Clean build directories"
-	@echo "  make distclean              - Clean everything including downloads"
+	@echo "  make clean         - Clean build directories"
+	@echo "  make cleansrc      - Clean source directories"
+	@echo "  make distclean     - Clean everything including downloads"
+	@echo ""
+	@echo "Dependency commands:"
+	@echo "  make check-deps    - Check if all required packages are installed"
+	@echo "  make install-deps  - Install all required packages"
 	@echo ""
 	@echo "Current configuration:"
 	@echo "  Architecture   : $(ARCH)"
 	@echo "  Cross compiler : $(CROSS_COMPILE)"
-	@echo "  Build Dir      : $(BUILD_DIR)"
-	@echo "  Source Dir     : $(SRC_DIR)"
-	@echo "  Download Dir   : $(DL_DIR)"
-	@echo "  Configs Dir    : $(CONFIGS_DIR)"
 	@echo ""
 	@echo "Component versions:"
 	@echo "  U-Boot         : $(UBOOT_VERSION)"
@@ -62,8 +62,12 @@ all: check-deps build
 download: busybox-dl kernel-dl uboot-dl
 	@echo "All components downloaded successfully."
 
-# Extract all components
+# Extract all components to build directory
 extract: busybox-ex kernel-ex uboot-ex
+	@echo "All components extracted successfully."
+
+# Extract all components to source directory
+src: busybox-src kernel-src uboot-src
 	@echo "All components extracted successfully."
 
 # Build all components
@@ -74,8 +78,9 @@ build: busybox kernel uboot
 clean: busybox-clean kernel-clean uboot-clean
 	@rm -rf $(BUILD_DIR)
 
+# Clean source directory
 cleansrc:
 	@rm -rf $(SRC_DIR)
 
-cleanall: clean cleansrc
+distclean: clean cleansrc
 	@rm -rf $(DL_DIR)

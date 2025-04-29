@@ -14,7 +14,11 @@ REQUIRED_PKGS := \
 	dwarves \
 	git \
 	bc \
-	pkg-config
+	pkg-config \
+	python3-setuptools \
+	python3-dev \
+	swig \
+	libgnutls28-dev
 
 # Check if running on Ubuntu/Debian
 ifeq ($(shell which apt-get 2>/dev/null),)

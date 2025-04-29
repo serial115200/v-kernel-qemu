@@ -12,27 +12,37 @@ UBOOT_URL := https://ftp.denx.de/pub/u-boot/u-boot-$(UBOOT_VERSION).tar.bz2
 uboot-dl:
 	$(call do_download,$(UBOOT_URL),$(UBOOT_ARCHIVE),$(UBOOT_SHA256),U-Boot)
 
-# Extract U-Boot source code
+# Extract U-Boot source code to source directory (for code reading)
+uboot-src: uboot-dl
+	$(call do_extract,$(UBOOT_ARCHIVE),$(UBOOT_SOURCE_DIR),U-Boot)
+
+# Extract U-Boot source code to build directory
 uboot-ex: uboot-dl
-	$(call do_extract,$(UBOOT_ARCHIVE),$(SRC_DIR),U-Boot)
+	$(call do_extract,$(UBOOT_ARCHIVE),$(UBOOT_BUILD_DIR),U-Boot)
 
 # Build U-Boot
 uboot: uboot-ex
-	$(call do_build,$(UBOOT_SOURCE_DIR),$(UBOOT_BUILD_DIR),$(UBOOT_CONFIG),U-Boot)
+	@echo "Building U-Boot $(UBOOT_VERSION)..."
+	@cd $(UBOOT_BUILD_DIR) && make mrproper
+	@if [ -f $(UBOOT_CONFIG) ]; then \
+		echo "Using existing config from $(UBOOT_CONFIG)"; \
+		cp $(UBOOT_CONFIG) $(UBOOT_BUILD_DIR)/.config; \
+		cd $(UBOOT_BUILD_DIR) && make olddefconfig CROSS_COMPILE=$(CROSS_COMPILE) ARCH=x86; \
+	else \
+		echo "Using default config qemu-x86_defconfig"; \
+		cd $(UBOOT_BUILD_DIR) && make qemu-x86_defconfig CROSS_COMPILE=$(CROSS_COMPILE) ARCH=x86; \
+	fi
+	@cd $(UBOOT_BUILD_DIR) && make -j$(JOBS) CROSS_COMPILE=$(CROSS_COMPILE) ARCH=x86 all
 
 # Configure U-Boot using menuconfig
 uboot-menu: uboot-ex
-	$(call do_menuconfig,$(UBOOT_SOURCE_DIR),$(UBOOT_BUILD_DIR),$(UBOOT_CONFIG),U-Boot)
+	$(call do_menuconfig,$(UBOOT_BUILD_DIR),$(UBOOT_CONFIG),U-Boot)
 
 # Save current U-Boot configuration
 uboot-save: uboot-ex
 	$(call do_saveconfig,$(UBOOT_BUILD_DIR),$(UBOOT_CONFIG),U-Boot)
 
-# Load U-Boot configuration
-uboot-load: uboot-ex
-	$(call do_loadconfig,$(UBOOT_SOURCE_DIR),$(UBOOT_BUILD_DIR),$(UBOOT_CONFIG),U-Boot)
-
-# Clean U-Boot build directory
+# Clean U-Boot source and build directories
 uboot-clean:
 	@echo "Cleaning U-Boot..."
 	@rm -rf $(UBOOT_BUILD_DIR)
