@@ -6,6 +6,7 @@ include include/host.mk
 include include/deps.mk
 include include/dirs.mk
 include include/common.mk
+
 # Include user configuration first
 include $(CONFIG_FILE)
 include include/config.mk
@@ -13,7 +14,9 @@ include include/uboot.mk
 include include/kernel.mk
 include include/busybox.mk
 
-.PHONY: all clean help
+include include/rootfs.mk
+
+.PHONY: all clean help run
 
 # Default target
 .DEFAULT_GOAL := help
@@ -71,7 +74,7 @@ src: busybox-src kernel-src uboot-src
 	@echo "All components extracted successfully."
 
 # Build all components
-build: busybox kernel uboot
+build: busybox kernel uboot rootfs
 	@echo "All components built successfully."
 
 # Clean target
@@ -84,3 +87,18 @@ cleansrc:
 
 distclean: clean cleansrc
 	@rm -rf $(DL_DIR)
+
+run:
+	@echo "Starting QEMU..."
+	@echo "Kernel path: $(KERNEL_BUILD_DIR)/arch/x86/boot/bzImage"
+	@echo "Rootfs path: $(ROOTFS_IMG).gz"
+	@qemu-system-x86_64 \
+		-m 512M \
+		-kernel $(KERNEL_BUILD_DIR)/arch/x86/boot/bzImage \
+		-nographic \
+		-append "root=/dev/ram init=/sbin/init console=ttyS0" \
+		-initrd $(ROOTFS_IMG).gz \
+		-serial mon:stdio \
+		-machine pc \
+		-cpu qemu64 \
+		-smp 1

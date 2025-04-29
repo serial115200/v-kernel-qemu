@@ -78,14 +78,20 @@ endef
 define do_build
 	@echo "Building $(4) $(3)..."
 	@mkdir -p $(1)
-	@if [ -f $(2) ]; then \
-		echo "Using existing config from $(2)"; \
+	@if [ -f $(1)/.config ]; then \
+		echo "Using existing config in build directory"; \
+	elif [ -f $(2) ]; then \
+		echo "Using config from $(2)"; \
 		cp $(2) $(1)/.config; \
 	else \
 		echo "Using default config"; \
 		cd $(1) && make defconfig ARCH=$(ARCH); \
 	fi
-	@cd $(1) && make -j$(JOBS) CROSS_COMPILE=$(CROSS_COMPILE) ARCH=$(ARCH) all
+	@if [ "$(V)" = "s" ]; then \
+		cd $(1) && make -j$(JOBS) CROSS_COMPILE=$(CROSS_COMPILE) ARCH=$(ARCH) all; \
+	else \
+		cd $(1) && make -j$(JOBS) CROSS_COMPILE=$(CROSS_COMPILE) ARCH=$(ARCH) all >/dev/null 2>&1; \
+	fi
 endef
 
 # Common menuconfig function for all components

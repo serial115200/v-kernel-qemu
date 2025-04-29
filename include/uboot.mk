@@ -23,16 +23,20 @@ uboot-ex: uboot-dl
 # Build U-Boot
 uboot: uboot-ex
 	@echo "Building U-Boot $(UBOOT_VERSION)..."
-	@cd $(UBOOT_BUILD_DIR) && make mrproper
-	@if [ -f $(UBOOT_CONFIG) ]; then \
-		echo "Using existing config from $(UBOOT_CONFIG)"; \
+	@if [ -f $(UBOOT_BUILD_DIR)/.config ]; then \
+		echo "Using existing config in build directory"; \
+	elif [ -f $(UBOOT_CONFIG) ]; then \
+		echo "Using config from $(UBOOT_CONFIG)"; \
 		cp $(UBOOT_CONFIG) $(UBOOT_BUILD_DIR)/.config; \
-		cd $(UBOOT_BUILD_DIR) && make olddefconfig CROSS_COMPILE=$(CROSS_COMPILE) ARCH=x86; \
 	else \
-		echo "Using default config qemu-x86_defconfig"; \
-		cd $(UBOOT_BUILD_DIR) && make qemu-x86_defconfig CROSS_COMPILE=$(CROSS_COMPILE) ARCH=x86; \
+		echo "Using default config"; \
+		cd $(UBOOT_BUILD_DIR) && make defconfig CROSS_COMPILE=$(CROSS_COMPILE) ARCH=x86; \
 	fi
-	@cd $(UBOOT_BUILD_DIR) && make -j$(JOBS) CROSS_COMPILE=$(CROSS_COMPILE) ARCH=x86 all
+	@if [ "$(V)" = "s" ]; then \
+		cd $(UBOOT_BUILD_DIR) && make -j$(JOBS) CROSS_COMPILE=$(CROSS_COMPILE) ARCH=x86 all; \
+	else \
+		cd $(UBOOT_BUILD_DIR) && make -j$(JOBS) CROSS_COMPILE=$(CROSS_COMPILE) ARCH=x86 all >/dev/null 2>&1; \
+	fi
 
 # Configure U-Boot using menuconfig
 uboot-menu: uboot-ex
