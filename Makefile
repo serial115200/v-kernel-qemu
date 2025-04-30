@@ -16,7 +16,7 @@ include include/busybox.mk
 
 include include/rootfs.mk
 
-.PHONY: all clean help run
+.PHONY: all clean help
 
 # Default target
 .DEFAULT_GOAL := help
@@ -77,11 +77,12 @@ src: busybox-src kernel-src uboot-src
 	@echo "All components extracted successfully."
 
 # Build all components
-build: busybox kernel uboot rootfs-img
+#build: busybox kernel uboot
+build: busybox kernel
 	@echo "All components built successfully."
 
 # Clean target
-clean: busybox-clean kernel-clean uboot-clean
+clean: busybox-clean kernel-clean uboot-clean rootfs-clean
 	@rm -rf $(BUILD_DIR)
 
 # Clean source directory
@@ -92,10 +93,17 @@ distclean: clean cleansrc
 	@rm -rf $(DL_DIR)
 
 # Run QEMU
-run: all
+run-cpio: all rootfs-cpio
 	@echo "Starting QEMU..."
 	@qemu-system-x86_64 \
-		-bios $(UBOOT_BUILD_DIR)/u-boot.bin \
-		-nographic \
+		-kernel $(KERNEL_BUILD_DIR)/arch/x86/boot/bzImage \
 		-append "rdinit=/sbin/init console=ttyS0" \
-		-initrd $(ROOTFS_IMG)
+		-initrd $(ROOTFS_IMG_CPIO) \
+		-nographic
+
+run-ext4: all rootfs-ext4
+	@qemu-system-x86_64 \
+		-kernel $(KERNEL_BUILD_DIR)/arch/x86/boot/bzImage \
+		-drive file=$(ROOTFS_IMG_EXT4),format=raw,if=virtio \
+		-append "root=/dev/vda console=ttyS0 rootfstype=ext4 rw" \
+		-nographic
