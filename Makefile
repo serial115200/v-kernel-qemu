@@ -95,7 +95,7 @@ distclean: clean cleansrc
 run: all
 	@echo "Starting QEMU..."
 	@qemu-system-x86_64 \
-		-kernel $(KERNEL_BUILD_DIR)/arch/x86/boot/bzImage \
+		-bios $(UBOOT_BUILD_DIR)/u-boot.bin \
 		-nographic \
 		-append "rdinit=/sbin/init console=ttyS0" \
 		-initrd $(ROOTFS_IMG)

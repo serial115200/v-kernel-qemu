@@ -26,8 +26,9 @@ rootfs-img: busybox
 	@ln -sf ../bin/busybox $(ROOTFS_DIR)/sbin/init
 
 	@echo "Creating necessary devices..."
-	@sudo mknod -m 600 $(ROOTFS_DIR)/dev/console c 5 1
-	@sudo mknod -m 600 $(ROOTFS_DIR)/dev/null c 1 3
+	@sudo mknod -m 622 $(ROOTFS_DIR)/dev/console c 5 1
+	@sudo mknod -m 666 $(ROOTFS_DIR)/dev/null c 1 3
+	@sudo mknod -m 666 $(ROOTFS_DIR)/dev/ttyS0 c 4 64
 
 	@echo "Creating fstab..."
 	@echo 'proc    /proc   proc    defaults    0 0' >  $(ROOTFS_DIR)/etc/fstab
@@ -36,22 +37,25 @@ rootfs-img: busybox
 
 	@echo "Creating inittab..."
 	@echo '::sysinit:/etc/init.d/rcS'           >  $(ROOTFS_DIR)/etc/inittab
-	@echo '::respawn:/bin/sh'                   >> $(ROOTFS_DIR)/etc/inittab
+	@echo '::respawn:/bin/cttyhack /bin/sh -l'  >> $(ROOTFS_DIR)/etc/inittab
 	@echo '::ctrlaltdel:/sbin/reboot'           >> $(ROOTFS_DIR)/etc/inittab
 	@echo '::shutdown:/bin/umount -a -r'        >> $(ROOTFS_DIR)/etc/inittab
 
 	@echo "Creating rcS..."
-	@echo '#!/bin/sh'                            >  $(ROOTFS_DIR)/etc/init.d/rcS
-	@echo 'mount -t proc none /proc'             >> $(ROOTFS_DIR)/etc/init.d/rcS
-	@echo 'mount -t sysfs none /sys'             >> $(ROOTFS_DIR)/etc/init.d/rcS
-	@echo 'mount -t devtmpfs devtmpfs /dev'      >> $(ROOTFS_DIR)/etc/init.d/rcS
+	@echo '#!/bin/sh'                                >  $(ROOTFS_DIR)/etc/init.d/rcS
+	@echo 'mount -t proc proc /proc'                 >> $(ROOTFS_DIR)/etc/init.d/rcS
+	@echo 'mount -t sysfs sysfs /sys'                >> $(ROOTFS_DIR)/etc/init.d/rcS
+	@echo 'mount -t devtmpfs devtmpfs /dev'          >> $(ROOTFS_DIR)/etc/init.d/rcS
 	@echo 'echo /sbin/mdev > /proc/sys/kernel/hotplug' >> $(ROOTFS_DIR)/etc/init.d/rcS
-	@echo 'mdev -s'                              >> $(ROOTFS_DIR)/etc/init.d/rcS
+	@echo 'mdev -s'                                  >> $(ROOTFS_DIR)/etc/init.d/rcS
+	@echo 'chmod 666 /dev/ttyS0'                     >> $(ROOTFS_DIR)/etc/init.d/rcS
+	@echo 'chmod 622 /dev/console 2>/dev/null'       >> $(ROOTFS_DIR)/etc/init.d/rcS
+
 	@chmod +x $(ROOTFS_DIR)/etc/init.d/rcS
 
 	@echo "Creating initramfs image..."
+	@sudo find $(ROOTFS_DIR) -exec chown root:root {} \; 2>/dev/null
 	@(cd $(ROOTFS_DIR) && find . -print0 | cpio --null -H newc -ov) | gzip > $(ROOTFS_IMG)
-
 
 # Clean root filesystem
 rootfs-clean:

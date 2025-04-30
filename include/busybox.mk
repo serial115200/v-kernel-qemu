@@ -17,21 +17,18 @@ BUSYBOX_MIRROR ?= tsinghua
 
 # Define mirror URLs
 BUSYBOX_MIRROR_OFFICIAL := https://busybox.net/downloads/busybox-$(BUSYBOX_VERSION).tar.bz2
-BUSYBOX_MIRROR_TSINGHUA := https://mirrors.tuna.tsinghua.edu.cn/busybox/busybox-$(BUSYBOX_VERSION).tar.bz2
 BUSYBOX_MIRROR_USTC := https://mirrors.ustc.edu.cn/busybox/busybox-$(BUSYBOX_VERSION).tar.bz2
 BUSYBOX_MIRROR_ALIYUN := https://mirrors.aliyun.com/busybox/busybox-$(BUSYBOX_VERSION).tar.bz2
 
 # Select mirror based on configuration
 ifeq ($(BUSYBOX_MIRROR),official)
 BUSYBOX_URL := $(BUSYBOX_MIRROR_OFFICIAL)
-else ifeq ($(BUSYBOX_MIRROR),tsinghua)
-BUSYBOX_URL := $(BUSYBOX_MIRROR_TSINGHUA)
 else ifeq ($(BUSYBOX_MIRROR),ustc)
 BUSYBOX_URL := $(BUSYBOX_MIRROR_USTC)
 else ifeq ($(BUSYBOX_MIRROR),aliyun)
 BUSYBOX_URL := $(BUSYBOX_MIRROR_ALIYUN)
 else
-$(error Invalid BUSYBOX_MIRROR value. Please use one of: official, tsinghua, ustc, aliyun)
+$(error Invalid BUSYBOX_MIRROR value. Please use one of: official, ustc, aliyun)
 endif
 
 # Download Busybox source code
