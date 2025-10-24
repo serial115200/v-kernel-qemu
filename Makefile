@@ -102,8 +102,9 @@ run-cpio: all rootfs-cpio
 		-nographic
 
 run-ext4: all rootfs-ext4
+	@echo "Starting QEMU..."
 	@qemu-system-x86_64 \
 		-kernel $(KERNEL_BUILD_DIR)/arch/x86/boot/bzImage \
-		-drive file=$(ROOTFS_IMG_EXT4),format=raw,if=virtio \
 		-append "root=/dev/vda console=ttyS0 rootfstype=ext4 rw" \
+		-drive file=$(ROOTFS_IMG_EXT4),format=raw,if=virtio \
 		-nographic
