@@ -97,7 +97,7 @@ run-cpio: all rootfs-cpio
 	@echo "Starting QEMU..."
 	@qemu-system-x86_64 \
 		-kernel $(KERNEL_BUILD_DIR)/arch/x86/boot/bzImage \
-		-append "rdinit=/sbin/init console=ttyS0" \
+		-append "rdinit=/sbin/init console=ttyS0 nokaslr" \
 		-initrd $(ROOTFS_IMG_CPIO) \
 		-nographic
 
@@ -105,6 +105,8 @@ run-ext4: all rootfs-ext4
 	@echo "Starting QEMU..."
 	@qemu-system-x86_64 \
 		-kernel $(KERNEL_BUILD_DIR)/arch/x86/boot/bzImage \
-		-append "root=/dev/vda console=ttyS0 rootfstype=ext4 rw" \
+		-append "root=/dev/vda console=ttyS0 rootfstype=ext4 rw nokaslr" \
 		-drive file=$(ROOTFS_IMG_EXT4),format=raw,if=virtio \
+		-S \
+		-s \
 		-nographic
